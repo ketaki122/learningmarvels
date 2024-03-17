@@ -1,1 +1,0 @@
-uvicorn resume_matcher:app --reload
