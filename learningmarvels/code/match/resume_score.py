@@ -4,6 +4,7 @@ import string
 import nltk
 import torch
 import PyPDF2
+import docx2txt
 import json
 import spacy
 from nltk.tokenize import word_tokenize
@@ -125,6 +126,11 @@ def extract_text_from_pdf(pdf_path):
             text += reader.pages[page_num].extract_text()
     return text
 
+def extract_text_from_doc(doc_path):
+    temp = docx2txt.process(doc_path)
+    text = [line.replace('\t', ' ') for line in temp.split('\n') if line]
+    return ' '.join(text)
+
 def calculate_similarity(jd_embedding, resume_embedding):
     return cosine_similarity(jd_embedding, resume_embedding).item()
 
@@ -146,13 +152,16 @@ def match_resumes_to_jd(jd_text, resume_folder, threshold, top_n):
     
     # Iterate through resume files in the folder
     resume_scores = []
-    print(resume_folder)
     for filename in os.listdir(resume_folder):
-        if filename.endswith('.pdf'):  # Assuming resumes are PDF files
+        if filename.endswith('.pdf')  or filename.endswith('.doc') or filename.endswith('.docx'):  # Assuming resumes are PDF files
             # Read and preprocess resume text
-            resume_text = extract_text_from_pdf(os.path.join(resume_folder, filename))
-            processed_resume_text = preprocess_text(resume_text)
-            
+            if(filename.endswith('.pdf')):
+              resume_text = extract_text_from_pdf(os.path.join(resume_folder, filename))
+            elif filename.endswith('.docx'):
+              resume_text = extract_text_from_doc(os.path.join(resume_folder, filename))
+            elif filename.endswith('.doc'):
+              resume_text = extract_text_from_doc(os.path.join(resume_folder, filename))
+            processed_resume_text = preprocess_text(resume_text) 
             
             # Tokenize and encode resume
             resume_tokens = tokenizer.encode(processed_resume_text, add_special_tokens=True, truncation=True, max_length=512)
@@ -214,48 +223,3 @@ def match_resumes_to_jd(jd_text, resume_folder, threshold, top_n):
         results_json["results"].append(result_entry)    
     return json.dumps(results_json, indent=4)
 
-
-def find_top_matching_resumes(jd_text, resume_folder, top_n=3):
-    # Extract text from job description and resumes
-    jd_text = preprocess_text(jd_text)
-    resume_texts = []
-    for filename in os.listdir(resume_folder):
-        if filename.endswith('.pdf'):
-            resume_text = extract_text_from_pdf(os.path.join(resume_folder, filename))
-            resume_texts.append(preprocess_text(resume_text))
-
-    # Vectorize job description and resumes using TF-IDF
-    vectorizer = TfidfVectorizer()
-    jd_vector = vectorizer.fit_transform([jd_text])
-    resume_vectors = vectorizer.transform(resume_texts)
-
-    # Calculate cosine similarity between job description and resumes
-    similarity_scores = cosine_similarity(jd_vector, resume_vectors)[0]
-
-    # Get indices of top matching resumes
-    top_indices = similarity_scores.argsort()[-top_n:][::-1]
-
-    #top_indices = round(top_indices,2)
-    # Get paths of top matching resumes
-    top_resumes = [os.listdir(resume_folder)[i] for i in top_indices]
-
-    return top_resumes, similarity_scores[top_indices]
-
-
-
-# Example usage
-#jd = "java developer with 5yrs"
-#resume_folder = "../resume-data"
-#r"C:\\TESTLAB\\learningmarvels\\code\\resume-data"
-#top_n = 4
-#threshold= 0.5
-
-
-#recommended_resumes = match_resumes_to_jd(jd, resume_folder, threshold, top_n)
-#print(recommended_resumes)
-
-
-# topresumes,similarity_scores  = find_top_matching_resumes(jd, resume_folder, top_n=3)
-# for resume, score in zip(topresumes, similarity_scores):
-#     print("Resume:", resume)
-#     print("Similarity Score:", score)

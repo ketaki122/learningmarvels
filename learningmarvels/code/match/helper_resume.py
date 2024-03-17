@@ -20,6 +20,7 @@ def match_resume(item,logging):
         url=item.inputpath
         if item.category.upper() =='JOB':
             job_folder = download_files(url,item.category)
+            print(job_folder)
             recommended_job = match_resumes_to_jd(item.context, job_folder, item.threshold, item.noOfMatches)
             object_dict = ast.literal_eval(recommended_job)
             json_string = json.dumps(object_dict)

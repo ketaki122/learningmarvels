@@ -47,6 +47,6 @@ async def match_items(item: Item):
     finally:
         delete_folder(item.category)
 # Comment below code for Azure deployment.
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="0.0.0.0")
+#if __name__ == "__main__":
+ #   import uvicorn
+  #  uvicorn.run(app, host="127.0.0.1", port=8000)

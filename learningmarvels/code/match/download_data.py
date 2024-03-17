@@ -52,12 +52,22 @@ def download_files(url,category):
     for blob in blobs:
         if not blob.name.endswith('/'):
             # Check if the file has the desired extension
-            if (blob.name.lower().endswith('.pdf') or blob.name.lower().endswith('.docx')):
-                # Extract the file name from the blob name
-                file_name = os.path.basename(blob.name)
-                # Download the file to the local directory
-                blob.download_to_filename(os.path.join(data_local_dir, file_name))
-                print(f'Downloaded file [{file_name}] from [{bucket_name}]')
+            if (category.upper()=="RESUME"):
+                if (blob.name.lower().endswith('.pdf')):
+                    # Extract the file name from the blob name
+                    file_name = os.path.basename(blob.name)
+                    # Download the file to the local directory
+                    blob.download_to_filename(os.path.join(data_local_dir, file_name))
+                    print(f'Downloaded file [{file_name}] from [{bucket_name}]')
+            elif (category.upper()=="JOB"):
+                if (blob.name.lower().endswith('.docx')):
+                    # Extract the file name from the blob name
+                    file_name = os.path.basename(blob.name)
+                    # Download the file to the local directory
+                    blob.download_to_filename(os.path.join(data_local_dir, file_name))
+                    print(f'Downloaded file [{file_name}] from [{bucket_name}]')
+
+
     return data_local_dir
     print("Download complete.")
 
